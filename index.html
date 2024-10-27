@@ -1,0 +1,227 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>Kotak Geser Kolom dengan Pop-up</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        .container {
+            display: flex;
+            overflow-x: auto; /* Aktifkan scroll horizontal */
+            width: 100%; /* Lebar kontainer */
+            height: 35%; /* Tinggi kontainer */
+            background-color: transparent;
+            scroll-snap-type: x mandatory; /* Snap ke kolom */
+        }
+
+        .column {
+            flex: 0 0 50%; /* Setiap kolom mengambil lebar penuh dari kontainer */
+            scroll-snap-align: start; /* Pengaturan snap */
+            display: flex;
+            flex-direction: column; /* Arah kolom vertikal */
+            justify-content: center;
+            align-items: center;
+            background-color: #ffffff;
+            margin-right: 15px; /* Spasi antar kolom */
+            border-radius: 8px;
+            color: rgb(0, 0, 0);
+            font-size: 24px;
+            transition: background-color 0.3s ease;
+            border: 3px solid black;
+        }
+
+        .column:hover {
+            background-color: #f0f0f0; /* Warna lebih gelap saat hover */
+        }
+
+        /* Style untuk scrollbar yang lebih baik */
+        .container::-webkit-scrollbar {
+            height: 10px; /* Tinggi scrollbar */
+        }
+        
+        .container::-webkit-scrollbar-thumb {
+            background: #888; /* Warna scrollbar */
+            border-radius: 10px; /* Sudut melengkung scrollbar */
+        }
+        
+        .container::-webkit-scrollbar-thumb:hover {
+            background: #555; /* Warna scrollbar saat hover */
+        }
+
+        .button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #0056b3; /* Warna lebih gelap saat hover */
+        }
+
+        .popup {
+            display: none; /* Tersembunyi secara default */
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            padding: 20px;
+            background-color: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000; /* Agar pop-up di atas konten lainnya */
+            text-align: center;
+        }
+
+        .overlay {
+            display: none; /* Tersembunyi secara default */
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999; /* Agar overlay di atas konten lainnya */
+        }
+
+        .nav-button {
+            margin: 5px;
+            padding: 5px 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-button:hover {
+            background-color: #0056b3; /* Warna lebih gelap saat hover */
+        }
+        .icon {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .icon-left {
+            left: 10px;
+        }
+
+        .icon-right {
+            right: 10px;
+        }
+
+        .icon i {
+            font-size: 24px;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="icon icon-left" onclick="scrollToColumn(-1)">
+        <i class="fas fa-chevron-left"></i>
+    </div>
+    <div class="container">
+        <div class="column">
+            Kolom 1
+            <button class="button" onclick="showPopup(1)">Info</button>
+        </div>
+        <div class="column">
+            Kolom 2
+            <button class="button" onclick="showPopup(2)">Info</button>
+        </div>
+        <div class="column">
+            Kolom 3
+            <button class="button" onclick="showPopup(3)">Info</button>
+        </div>
+        <div class="column">
+            Kolom 4
+            <button class="button" onclick="showPopup(4)">Info</button>
+        </div>
+        <div class="column">
+            Kolom 5
+            <button class="button" onclick="showPopup(5)">Info</button>
+        </div>
+    </div>
+    <div class="icon icon-right" onclick="scrollToColumn(1)">
+        <i class="fas fa-chevron-right"></i>
+    </div>
+    <div class="overlay" id="overlay" onclick="hidePopup()"></div>
+    <div class="popup" id="popup">
+        <p id="popupText"></p>
+        <button class="nav-button" onclick="changeMessage(-1)">Kiri</button>
+        <button class="nav-button" onclick="changeMessage(1)">Kanan</button>
+    </div>
+
+    <script>
+        let currentColumn = 1;
+
+        function showPopup(column) {
+            currentColumn = column;
+            updatePopupText();
+            document.getElementById('popup').style.display = 'block';
+            document.getElementById('overlay').style.display = 'block';
+        }
+
+        function hidePopup() {
+            document.getElementById('popup').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none';
+        }
+
+        function updatePopupText() {
+            const messages = [
+                'Ini adalah informasi dari Kolom 1',
+                'Ini adalah informasi dari Kolom 2',
+                'Ini adalah informasi dari Kolom 3',
+                'Ini adalah informasi dari Kolom 4',
+                'Ini adalah informasi dari Kolom 5'
+            ];
+            document.getElementById('popupText').innerText = messages[currentColumn - 1];
+        }
+
+        function changeMessage(direction) {
+            currentColumn += direction;
+            if (currentColumn < 1) currentColumn = 1; // Tidak kurang dari 1
+            if (currentColumn > 5) currentColumn = 5; // Tidak lebih dari 5
+            updatePopupText();
+        }
+
+        function scrollToColumn(direction) {
+            const container = document.querySelector('.container');
+            const scrollAmount = container.clientWidth / 2; // Sesuaikan jumlah scroll
+            container.scrollBy({
+                left: scrollAmount * direction,
+                behavior: 'smooth' // Animasi scroll
+            });
+        }
+    </script>
+
+</body>
+</html>
+
+
+
+
